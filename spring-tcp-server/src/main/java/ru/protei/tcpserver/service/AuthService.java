@@ -1,16 +1,16 @@
 package ru.protei.tcpserver.service;
 
-import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.protei.tcpserver.dao.UserDAO;
+import ru.protei.tcpserver.model.User;
 
 @Component
 public class AuthService {
-    private Logger log;
+    @Autowired
     private UserDAO userDAO;
 
-    public AuthService(Logger log, UserDAO userDAO) {
-        this.log = log;
-        this.userDAO = userDAO;
+    public boolean isAuth(User user) {
+        return userDAO.exists(user);
     }
 }

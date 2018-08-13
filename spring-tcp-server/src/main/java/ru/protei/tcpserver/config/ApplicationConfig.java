@@ -2,11 +2,11 @@ package ru.protei.tcpserver.config;
 
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import ru.protei.tcpserver.Controller;
+import ru.protei.tcpserver.aspect.WebServiceLogger;
 import ru.protei.tcpserver.dao.UserDAO;
 import ru.protei.tcpserver.dao.WordDAO;
 import ru.protei.tcpserver.database.DBConnectionManager;
@@ -15,15 +15,13 @@ import ru.protei.tcpserver.service.MainService;
 import ru.protei.tcpserver.service.WordService;
 
 @Configuration
+@EnableAspectJAutoProxy(proxyTargetClass = true)
 public class ApplicationConfig {
 
-    @Autowired
-    Environment environment;
-
     @Bean
-    public Logger logger() {
+    public Logger log() {
         BasicConfigurator.configure();
-        return Logger.getLogger(ApplicationConfig.class);
+        return Logger.getLogger(WebServiceLogger.class);
     }
 
     @Bean
@@ -32,32 +30,37 @@ public class ApplicationConfig {
     }
 
     @Bean
-    public UserDAO userDAO(Logger logger, DBConnectionManager dbConnectionManager) {
-        return new UserDAO(logger, dbConnectionManager);
+    public UserDAO userDAO() {
+        return new UserDAO();
     }
 
     @Bean
-    public WordDAO wordDAO(Logger logger, DBConnectionManager dbConnectionManager) {
-        return new WordDAO(logger, dbConnectionManager);
+    public WordDAO wordDAO() {
+        return new WordDAO();
     }
 
     @Bean
-    public AuthService authService(Logger logger, UserDAO userDAO) {
-        return new AuthService(logger, userDAO);
+    public AuthService authService() {
+        return new AuthService();
     }
 
     @Bean
-    public MainService mainService(Logger logger, AuthService authService, WordService wordService) {
-        return new MainService(logger, authService, wordService);
+    public MainService mainService() {
+        return new MainService();
     }
 
     @Bean
-    public WordService wordService(Logger logger, WordDAO wordDAO) {
-        return new WordService(logger, wordDAO);
+    public WordService wordService() {
+        return new WordService();
     }
 
     @Bean
-    public Controller controller(Logger logger, MainService mainService) {
-        return new Controller(logger, mainService);
+    public Controller controller() {
+        return new Controller();
+    }
+
+    @Bean
+    public WebServiceLogger webServiceLogger() {
+        return new WebServiceLogger();
     }
 }

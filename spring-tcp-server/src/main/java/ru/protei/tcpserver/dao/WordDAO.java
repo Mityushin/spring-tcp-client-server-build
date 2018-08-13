@@ -1,13 +1,20 @@
 package ru.protei.tcpserver.dao;
 
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import ru.protei.tcpserver.annotation.Loggable;
 import ru.protei.tcpserver.database.DBConnectionManager;
 import ru.protei.tcpserver.model.Word;
 
-@Component
-public class WordDAO implements CRUD<Word> {
+import javax.annotation.PostConstruct;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 
+@Component
+public class WordDAO {
     private static final String SQL_TABLE_COLUMN_ID = "ID";
     private static final String SQL_TABLE_COLUMN_TITLE = "TITLE";
     private static final String SQL_TABLE_COLUMN_DESCRIPTION = "DESCRIPTION";
@@ -22,27 +29,76 @@ public class WordDAO implements CRUD<Word> {
     private static final String SQL_DELETE_WORD_BY_TITLE = "DELETE FROM WORD WHERE WORD.TITLE = ?";
     private static final String SQL_CHECK_EXISTS_BY_TITLE = "SELECT * FROM WORD WHERE WORD.TITLE = ?";
 
+    @Autowired
     private Logger log;
-    private DBConnectionManager database;
 
-    public WordDAO(Logger log, DBConnectionManager database) {
-        this.log = log;
-        this.database = database;
+    @Autowired
+    private DBConnectionManager dbConnectionManager;
+
+    @PostConstruct
+    public void init() {
+        try {
+            Statement stmt = dbConnectionManager.getConnection().createStatement();
+            stmt.executeUpdate(SQL_CREATE_TABLE_WORD);
+            log.info("Table WORD created");
+        } catch (SQLException e) {
+            log.fatal("Can't create table WORD", e);
+        }
     }
 
-    public Word create(Word word) {
-        return null;
+    @Loggable
+    public boolean create(Word w) {
+        try {
+            PreparedStatement pstmt = dbConnectionManager.getConnection().prepareStatement(SQL_CREATE_WORD);
+            pstmt.setString(1, w.getTitle());
+            pstmt.setString(2, w.getDescription());
+
+            return pstmt.executeUpdate() != 0;
+        } catch (SQLException e) {
+            log.error("Error insert", e);
+        }
+        return false;
     }
 
-    public Word update(Word word) {
-        return null;
+    @Loggable
+    public boolean update(Word w) {
+        try {
+            PreparedStatement pstmt = dbConnectionManager.getConnection().prepareStatement(SQL_UPDATE_WORD);
+            pstmt.setString(1, w.getDescription());
+            pstmt.setString(2, w.getTitle());
+
+            return pstmt.executeUpdate() != 0;
+        } catch (SQLException e) {
+            log.error("Error update", e);
+        }
+        return false;
     }
 
-    public Word delete(Word word) {
-        return null;
+    @Loggable
+    public boolean delete(Word w) {
+        try {
+            PreparedStatement pstmt = dbConnectionManager.getConnection().prepareStatement(SQL_DELETE_WORD_BY_TITLE);
+            pstmt.setString(1, w.getTitle());
+
+            return pstmt.executeUpdate() != 0;
+        } catch (SQLException e) {
+            log.error("Error delete", e);
+        }
+        return false;
     }
 
-    public boolean exists(Word word) {
+    @Loggable
+    public boolean exists(Word w) {
+        try {
+            PreparedStatement pstmt = dbConnectionManager.getConnection().prepareStatement(SQL_CHECK_EXISTS_BY_TITLE);
+            pstmt.setString(1, w.getTitle());
+            ResultSet rs = pstmt.executeQuery();
+            if (rs.next()) {
+                return true;
+            }
+        } catch (SQLException e) {
+            log.error("Error exists", e);
+        }
         return false;
     }
 }

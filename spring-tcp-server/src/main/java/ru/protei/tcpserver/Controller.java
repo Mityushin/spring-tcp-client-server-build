@@ -1,6 +1,7 @@
 package ru.protei.tcpserver;
 
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import ru.protei.tcpserver.service.MainService;
 
@@ -12,13 +13,11 @@ import java.net.Socket;
 
 @Component
 public class Controller {
+    @Autowired
     private Logger log;
-    private MainService mainService;
 
-    public Controller(Logger log, MainService mainService) {
-        this.log = log;
-        this.mainService = mainService;
-    }
+    @Autowired
+    private MainService mainService;
 
     public void run() {
         int serverPort = 3345;
